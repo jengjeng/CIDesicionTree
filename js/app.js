@@ -109,7 +109,7 @@
                 index: 0,
                 classFilter: [
                         { name: "<=5.4", min: -Infinity, max: 5.4 },
-                        { name: "5.5-6.2", min: 5.5, max: 6.2 },
+                        { name: "5.5 ถึง 6.2", min: 5.5, max: 6.2 },
                         { name: ">=6.3", min: 6.3, max: Infinity }
                 ]
             }, {
@@ -117,7 +117,7 @@
                 index: 1,
                 classFilter: [
                         { name: "<=2.9", min: -Infinity, max: 2.9 },
-                        { name: "3.0-3.3", min: 3, max: 3.3 },
+                        { name: "3.0 ถึง 3.3", min: 3, max: 3.3 },
                         { name: ">=3.4", min: 3.4, max: Infinity }
                 ]
             }, {
@@ -125,7 +125,7 @@
                 index: 2,
                 classFilter: [
                         { name: "<=2.9", min: -Infinity, max: 2.9 },
-                        { name: "3.0-4.8", min: 3, max: 4.8 },
+                        { name: "3.0 ถึง 4.8", min: 3, max: 4.8 },
                         { name: ">=4.9", min: 4.9, max: Infinity }
                 ]
             }, {
