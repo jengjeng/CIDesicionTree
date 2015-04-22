@@ -70,8 +70,10 @@
             return names;
         }());
 
-        app.log.title('Dataset ที่ใช้')
-        app.log.table(data, attrsNames, 'table-bordered table-striped', true);
+        app.log.title('Dataset ที่ใช้');
+        var logAttrNames = attrsNames.slice(0);
+        logAttrNames.push('Class');
+        app.log.table(data, logAttrNames, 'table-bordered table-striped', true);
 
         var testData = data.splice(50 * section, 50);
         var desiredOutputNames = getDesireOutputNames(data);
@@ -102,60 +104,60 @@
         }
 
         function getAttributeConfig(attrs, data) {
-            //return [{
-            //    name: 'Attribute_1',
-            //    index: 0,
-            //    classFilter: [
-            //            { name: "<=5.4", min: -Infinity, max: 5.4 },
-            //            { name: "5.5 ถึง 6.2", min: 5.5, max: 6.2 },
-            //            { name: ">=6.3", min: 6.3, max: Infinity }
-            //    ]
-            //}, {
-            //    name: 'Attribute_2',
-            //    index: 1,
-            //    classFilter: [
-            //            { name: "<=2.9", min: -Infinity, max: 2.9 },
-            //            { name: "3.0 ถึง 3.3", min: 3, max: 3.3 },
-            //            { name: ">=3.4", min: 3.4, max: Infinity }
-            //    ]
-            //}, {
-            //    name: 'Attribute_3',
-            //    index: 2,
-            //    classFilter: [
-            //            { name: "<=2.9", min: -Infinity, max: 2.9 },
-            //            { name: "3.0 ถึง 4.8", min: 3, max: 4.8 },
-            //            { name: ">=4.9", min: 4.9, max: Infinity }
-            //    ]
-            //}, {
-            //    name: 'Attribute_4',
-            //    index: 3,
-            //    classFilter: [
-            //            { name: "<=0.9", min: -Infinity, max: 0.9 },
-            //            { name: "1.0 ถึง 1.7", min: 1, max: 1.7 },
-            //            { name: ">=1.8", min: 1.8, max: Infinity }
-            //    ]
-            //}];
+            return [{
+                name: 'Attribute_1',
+                index: 0,
+                classFilter: [
+                        { name: "<=5.4", min: -Infinity, max: 5.4 },
+                        { name: "5.5-6.2", min: 5.5, max: 6.2 },
+                        { name: ">=6.3", min: 6.3, max: Infinity }
+                ]
+            }, {
+                name: 'Attribute_2',
+                index: 1,
+                classFilter: [
+                        { name: "<=2.9", min: -Infinity, max: 2.9 },
+                        { name: "3.0-3.3", min: 3, max: 3.3 },
+                        { name: ">=3.4", min: 3.4, max: Infinity }
+                ]
+            }, {
+                name: 'Attribute_3',
+                index: 2,
+                classFilter: [
+                        { name: "<=2.9", min: -Infinity, max: 2.9 },
+                        { name: "3.0-4.8", min: 3, max: 4.8 },
+                        { name: ">=4.9", min: 4.9, max: Infinity }
+                ]
+            }, {
+                name: 'Attribute_4',
+                index: 3,
+                classFilter: [
+                        { name: "<=0.9", min: -Infinity, max: 0.9 },
+                        { name: "1.0-1.7", min: 1, max: 1.7 },
+                        { name: ">=1.8", min: 1.8, max: Infinity }
+                ]
+            }];
 
-            return attrs.map(function (attr, i) {
+            //return attrs.map(function (attr, i) {
 
-                var d = data.map(function (a) {
-                    return a[i];
-                });
-                var mean = findMean(d);
-                var sd = findSD(d);
-                var lowerBound = mean - sd;
-                var upperBound = mean + sd;
+            //    var d = data.map(function (a) {
+            //        return a[i];
+            //    });
+            //    var mean = findMean(d);
+            //    var sd = findSD(d);
+            //    var lowerBound = mean - sd;
+            //    var upperBound = mean + sd;
 
-                return {
-                    name: attr,
-                    index: i,
-                    classFilter: [
-                        { name: "<=" + lowerBound.toFixed(2), min: -Infinity, max: lowerBound },
-                        { name: lowerBound.toFixed(2) + " ถึง " + upperBound.toFixed(2), min: lowerBound, max: upperBound },
-                        { name: ">" + upperBound.toFixed(2), min: upperBound, max: Infinity }
-                    ]
-                };
-            });
+            //    return {
+            //        name: attr,
+            //        index: i,
+            //        classFilter: [
+            //            { name: "<=" + lowerBound.toFixed(2), min: -Infinity, max: lowerBound },
+            //            { name: lowerBound.toFixed(2) + " ถึง " + upperBound.toFixed(2), min: lowerBound, max: upperBound },
+            //            { name: ">" + upperBound.toFixed(2), min: upperBound, max: Infinity }
+            //        ]
+            //    };
+            //});
         }
     }
 
@@ -307,6 +309,16 @@
 
         var result = doTestData();
 
+        app.log.title('ผลสรุป');
+        app.log.table((function () {
+            return self.desiredOutput.map(function (key) {
+                return [].concat(key).concat((function () {
+                    return self.desiredOutput.map(function (k) {
+                        return result.map[key][k] || 0;
+                    });
+                }()));
+            });
+        }()), ['Desired Output \ Test Output'].concat(self.desiredOutput), 'table-bordered');
         app.log.title('จากการทดสอบพบว่ามีเปอร์เซ็นต์ความถูกต้องเท่ากับ <span class="text-primary">' + ((result.correct * 100 / result.n).toFixed(2)) + ' %</span> ซึ่งเป็นผลการทดลองที่ค่อนข้างดี เนื่องจากมีความผิดพลาดเพียง <span class="text-danger">' + (((result.n - result.correct - result.unknown) * 100 / result.n).toFixed(2)) + '%</span> และระบุ Class ไม่ได้เพียง <span class="text-unknown">' + ((result.unknown * 100 / result.n).toFixed(2)) + ' %</span> เท่านั้น ', 'well');
 
         function findNode(level, data, prevAttrNames, prevFilters, prevNode) {
@@ -612,6 +624,7 @@
                     return map[ds]['unknown'] || 0;
                 }).reduce(function (a, b) { return a + b }, 0),
                 n: testData.length,
+                map: map
             };
 
             function getItemResultFromTree(item) {
