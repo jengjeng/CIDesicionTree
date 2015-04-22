@@ -51,9 +51,6 @@
             msg += '</table>';
             this.message(msg);
         },
-        maxGain: function (maxGainAttr) {
-
-        },
     };
 
     function exampleData() {
@@ -70,7 +67,6 @@
                 names.push('Attribute_' + (i+1));
             });
             names.pop();
-            names.push('Class');
             return names;
         }());
 
@@ -106,39 +102,39 @@
         }
 
         function getAttributeConfig(attrs, data) {
-            return [{
-                name: 'Attribute_1',
-                index: 0,
-                classFilter: [
-                        { name: "<=5.4", min: -Infinity, max: 5.4 },
-                        { name: "5.5 ถึง 6.2", min: 5.5, max: 6.2 },
-                        { name: ">=6.3", min: 6.3, max: Infinity }
-                ]
-            }, {
-                name: 'Attribute_2',
-                index: 1,
-                classFilter: [
-                        { name: "<=2.9", min: -Infinity, max: 2.9 },
-                        { name: "3.0 ถึง 3.3", min: 3, max: 3.3 },
-                        { name: ">=3.4", min: 3.4, max: Infinity }
-                ]
-            }, {
-                name: 'Attribute_3',
-                index: 2,
-                classFilter: [
-                        { name: "<=2.9", min: -Infinity, max: 2.9 },
-                        { name: "3.0 ถึง 4.8", min: 3, max: 4.8 },
-                        { name: ">=4.9", min: 4.9, max: Infinity }
-                ]
-            }, {
-                name: 'Attribute_4',
-                index: 3,
-                classFilter: [
-                        { name: "<=0.9", min: -Infinity, max: 0.9 },
-                        { name: "1.0 ถึง 1.7", min: 1, max: 1.7 },
-                        { name: ">=1.8", min: 1.8, max: Infinity }
-                ]
-            }];
+            //return [{
+            //    name: 'Attribute_1',
+            //    index: 0,
+            //    classFilter: [
+            //            { name: "<=5.4", min: -Infinity, max: 5.4 },
+            //            { name: "5.5 ถึง 6.2", min: 5.5, max: 6.2 },
+            //            { name: ">=6.3", min: 6.3, max: Infinity }
+            //    ]
+            //}, {
+            //    name: 'Attribute_2',
+            //    index: 1,
+            //    classFilter: [
+            //            { name: "<=2.9", min: -Infinity, max: 2.9 },
+            //            { name: "3.0 ถึง 3.3", min: 3, max: 3.3 },
+            //            { name: ">=3.4", min: 3.4, max: Infinity }
+            //    ]
+            //}, {
+            //    name: 'Attribute_3',
+            //    index: 2,
+            //    classFilter: [
+            //            { name: "<=2.9", min: -Infinity, max: 2.9 },
+            //            { name: "3.0 ถึง 4.8", min: 3, max: 4.8 },
+            //            { name: ">=4.9", min: 4.9, max: Infinity }
+            //    ]
+            //}, {
+            //    name: 'Attribute_4',
+            //    index: 3,
+            //    classFilter: [
+            //            { name: "<=0.9", min: -Infinity, max: 0.9 },
+            //            { name: "1.0 ถึง 1.7", min: 1, max: 1.7 },
+            //            { name: ">=1.8", min: 1.8, max: Infinity }
+            //    ]
+            //}];
 
             return attrs.map(function (attr, i) {
 
@@ -155,7 +151,7 @@
                     index: i,
                     classFilter: [
                         { name: "<=" + lowerBound.toFixed(2), min: -Infinity, max: lowerBound },
-                        { name: lowerBound.toFixed(2) + "-" + upperBound.toFixed(2), min: lowerBound, max: upperBound },
+                        { name: lowerBound.toFixed(2) + " ถึง " + upperBound.toFixed(2), min: lowerBound, max: upperBound },
                         { name: ">" + upperBound.toFixed(2), min: upperBound, max: Infinity }
                     ]
                 };
@@ -303,12 +299,17 @@
         self.desiredOutput = desiredOutput || [];
         self.graphNodes = [];
         self.graphEdges = [];
+        self.root = null;
 
         findNode(1, data, [], []);
 
         self.graphNodes = $.unique(self.graphNodes);
 
-        function findNode(level, data, prevAttrNames, prevFilters, prevNodeId) {
+        var result = doTestData();
+
+        app.log.title('จากการทดสอบพบว่ามีเปอร์เซ็นต์ความถูกต้องเท่ากับ <span class="text-primary">' + ((result.correct * 100 / result.n).toFixed(2)) + ' %</span> ซึ่งเป็นผลการทดลองที่ค่อนข้างดี เนื่องจากมีความผิดพลาดเพียง <span class="text-danger">' + (((result.n - result.correct - result.unknown) * 100 / result.n).toFixed(2)) + '%</span> และระบุ Class ไม่ได้เพียง <span class="text-unknown">' + ((result.unknown * 100 / result.n).toFixed(2)) + ' %</span> เท่านั้น ', 'well');
+
+        function findNode(level, data, prevAttrNames, prevFilters, prevNode) {
 
             if (data.length == 0)
                 return;
@@ -328,12 +329,19 @@
             var maxGainAttr = findMaxGain(data, info, _prevAttrNames);
             if (maxGainAttr) {
 
+                if (!self.root) {
+                    self.root = maxGainAttr;
+                }
+                if (prevNode) {
+                    prevNode.next = maxGainAttr;
+                }
+
                 _prevAttrNames.push(maxGainAttr.attr.name);
 
-                var maxGainAttrNodeId = maxGainAttr.attr.name + (prevNodeId ? Math.random() : '');
+                var maxGainAttrNodeId = maxGainAttr.attr.name + (prevNode ? Math.random() : '');
                 addGraphNode(maxGainAttrNodeId, maxGainAttr.attr.name, 'attr');
-                if (prevNodeId) {
-                    addGraphEdge(prevNodeId, maxGainAttrNodeId);
+                if (prevNode && prevNode.smNodeId) {
+                    addGraphEdge(prevNode.smNodeId, maxGainAttrNodeId);
                 }
 
                 maxGainAttr.gain.summary.forEach(function (sm) {
@@ -343,6 +351,7 @@
                     sm.smNodeId = smNodeId;
                 });
 
+
                 var callbackFindNodes = [];
                 maxGainAttr.gain.summary.forEach(function (sm) {
                     var smNodeId = sm.smNodeId;
@@ -351,12 +360,14 @@
                     });
                     if (filtered.length == 0) {
                         var unkId = 'unknown' + Math.random();
+                        sm.next = 'unknown';
                         addGraphNode(unkId, 'unknown', 'unknown');
                         addGraphEdge(smNodeId, unkId);
                     } else if (filtered.length == 1) {
                         var detail = filtered[0];
                         var desired = detail.desired;
                         var dsId = smNodeId + desired;
+                        sm.next = desired;
                         addGraphNode(dsId, desired, 'result');
                         addGraphEdge(smNodeId, dsId);
                     } else {
@@ -368,7 +379,7 @@
                             var _tempPrevFilter = _prevFilters.slice(0);
                             _tempPrevFilter.push(maxGainAttr.attr.name + ' มีค่า ' + sm.classInfo.name);
 
-                            callbackFindNodes.push([level + 1, tempData, _prevAttrNames, _tempPrevFilter, smNodeId]);
+                            callbackFindNodes.push([level + 1, tempData, _prevAttrNames, _tempPrevFilter, sm]);
                         }
                         else {
                             var counts = sm.counts.slice(0);
@@ -377,6 +388,7 @@
                             });
                             var desired = counts[0].desired;
                             var dsId = smNodeId + desired;
+                            sm.next = desired;
                             addGraphNode(dsId, desired, 'result');
                             addGraphEdge(smNodeId, dsId);
                         }
@@ -573,8 +585,49 @@
             return this.attributes[index];
         }
 
-        function doTestData(data, tData) {
+        function doTestData() {
+            var root = self.root;
+            var testData = self.testData;
+            var data = self.data;
+            var map = {};
+            testData.forEach(function (tr) {
+                var desired = getDesiredOutputFromItem(tr);
+                if (!map[desired])
+                    map[desired] = {};
 
+                var output = getItemResultFromTree(tr);
+                if (!map[desired][output])
+                    map[desired][output] = 0;
+                map[desired][output]++;
+            });
+
+            var correct = 0;
+            self.desiredOutput.forEach(function (ds) {
+                correct += map[ds][ds];
+            });
+
+            return {
+                correct: correct,
+                unknown: self.desiredOutput.map(function(ds){
+                    return map[ds]['unknown'] || 0;
+                }).reduce(function (a, b) { return a + b }, 0),
+                n: testData.length,
+            };
+
+            function getItemResultFromTree(item) {
+                var root = self.root;
+                while (typeof (root) === 'object') {
+                    var smIndex = 0;
+                    root.gain.summary.forEach(function (sm, i) {
+                        if (checkRangeCondition(item[root.attr.index], sm.classInfo.min, sm.classInfo.max)) {
+                            smIndex = i;
+                            return;
+                        }
+                    });
+                    root = root.gain.summary[smIndex].next;
+                }
+                return root;
+            }
         }
     }
 
