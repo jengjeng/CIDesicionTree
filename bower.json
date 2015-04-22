@@ -1,0 +1,20 @@
+{
+  "name": "DecisionTree",
+  "version": "0.0.0",
+  "authors": [
+    "Jeng <kinkongjeng@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "assets",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.3",
+    "cytoscape": "~2.3.15"
+  }
+}
