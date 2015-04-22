@@ -1,4 +1,4 @@
-(function (window, document, $) {
+﻿(function (window, document, $) {
 
     var app = {};
 
@@ -6,106 +6,128 @@
     app.showGraph = showGraph;
     app.readData = readData;
     app.start = start;
+    app.exampleData = exampleData;
+    app.parseData = parseData;
+    app.log = {
+        $e: $('#logContent'),
+        message: function (t) {
+            this.$e.append(t);
+        },
+        title: function (t) {
+            this.message('<div><strong>' + t + '</strong></div>');
+        },
+        maxGain: function (maxGainAttr) {
 
-    app.start();
+        },
+    };
 
-    function start() {
-        var attrsNames = ['Attribute_1', 'Attribute_2', 'Attribute_3', 'Attribute_4'];
-
-        app.readData('data/iris.random.data').then(function (data) {
-            //data = randomData(data);
-            var testData = data.splice(50, 50);
-            var desiredOutputNames = getDesireOutputNames(data);
-            var attrConfig = getAttributeConfig(attrsNames, data);
-            var ci = new CIDecisionTree(data, attrConfig, desiredOutputNames);
-            app.showGraph(ci.graphNodes, ci.graphEdges);
-
-            ///////////
-
-            function randomData(data) {
-                var r = [];
-                while (data.length > 0) {
-                    var index = Math.round(Math.random() * (data.length - 1));
-                    r.push(data.splice(index, 1)[0]);
-                }
-
-                var aa = r.map(function (line) {
-                    return line.join(',');
-                })
-                var ab = aa.join('\n');
-                console.log(ab);
-
-                return r;
-
-            }
-
-            function getDesireOutputNames(data) {
-                var r = data.map(function (line) {
-                    var desireOutputIndex = line.length - 1;
-                    return line[desireOutputIndex];
-                });
-                r = $.unique(r);
-                r.sort();
-                return r;
-            }
-
-            function getAttributeConfig(attrs, data) {
-                return [{
-                    name: 'Attribute_1',
-                    index: 0,
-                    classFilter: [
-                            { name: "<=5.4", min: -Infinity, max: 5.4 },
-                            { name: "5.5-6.2", min: 5.5, max: 6.2 },
-                            { name: ">=6.3", min: 6.3, max: Infinity }
-                    ]
-                }, {
-                    name: 'Attribute_2',
-                    index: 1,
-                    classFilter: [
-                            { name: "<=2.9", min: -Infinity, max: 2.9 },
-                            { name: "3.0-3.3", min: 3, max: 3.3 },
-                            { name: ">=3.4", min: 3.4, max: Infinity }
-                    ]
-                }, {
-                    name: 'Attribute_3',
-                    index: 2,
-                    classFilter: [
-                            { name: "<=2.9", min: -Infinity, max: 2.9 },
-                            { name: "3.0-4.8", min: 3, max: 4.8 },
-                            { name: ">=4.9", min: 4.9, max: Infinity }
-                    ]
-                }, {
-                    name: 'Attribute_4',
-                    index: 3,
-                    classFilter: [
-                            { name: "<=0.9", min: -Infinity, max: 0.9 },
-                            { name: "1.0-1.7", min: 1, max: 1.7 },
-                            { name: ">=1.8", min: 1.8, max: Infinity }
-                    ]
-                }];
-
-                return attrs.map(function (attr, i) {
-
-                    var d = data.map(function (a) {
-                        return a[i];
-                    });
-                    var mean = findMean(d);
-                    var sd = findSD(d);
-                    var lowerBound = mean - sd;
-                    var upperBound = mean + sd;
-
-                    return {
-                        name: attr,
-                        index: i,
-                        classFilter: [
-                            { name: "<=" + lowerBound.toFixed(2), min: -Infinity, max: lowerBound },
-                            { name: lowerBound.toFixed(2) + "-" + upperBound.toFixed(2), min: lowerBound, max: upperBound },
-                            { name: ">" + upperBound.toFixed(2), min: upperBound, max: Infinity }
-                        ]
-                    };
-                });
-            }
+    function exampleData() {
+        return app.readData('data/iris.random.data').then(function (data) {
+            data = randomData(data);
+            return data;
         });
+    }
+    function start(data, section) {
+        app.log.$e.empty();
+        var attrsNames = (function () {
+            var names = [];
+            data[0].forEach(function (e, i) {
+                names.push('Attribute_' + i);
+            });
+            return names;
+        }());
+
+        var testData = data.splice(50 * section, 50);
+        var desiredOutputNames = getDesireOutputNames(data);
+        var attrConfig = getAttributeConfig(attrsNames, data);
+        var ci = new CIDecisionTree(data, attrConfig, desiredOutputNames);
+        app.showGraph(ci.graphNodes, ci.graphEdges);
+
+        ///////////
+
+        function getDesireOutputNames(data) {
+            var r = data.map(function (line) {
+                var desireOutputIndex = line.length - 1;
+                return line[desireOutputIndex];
+            });
+            r = $.unique(r);
+            r.sort();
+            return r;
+        }
+
+        function getAttributeConfig(attrs, data) {
+            return [{
+                name: 'Attribute_1',
+                index: 0,
+                classFilter: [
+                        { name: "<=5.4", min: -Infinity, max: 5.4 },
+                        { name: "5.5-6.2", min: 5.5, max: 6.2 },
+                        { name: ">=6.3", min: 6.3, max: Infinity }
+                ]
+            }, {
+                name: 'Attribute_2',
+                index: 1,
+                classFilter: [
+                        { name: "<=2.9", min: -Infinity, max: 2.9 },
+                        { name: "3.0-3.3", min: 3, max: 3.3 },
+                        { name: ">=3.4", min: 3.4, max: Infinity }
+                ]
+            }, {
+                name: 'Attribute_3',
+                index: 2,
+                classFilter: [
+                        { name: "<=2.9", min: -Infinity, max: 2.9 },
+                        { name: "3.0-4.8", min: 3, max: 4.8 },
+                        { name: ">=4.9", min: 4.9, max: Infinity }
+                ]
+            }, {
+                name: 'Attribute_4',
+                index: 3,
+                classFilter: [
+                        { name: "<=0.9", min: -Infinity, max: 0.9 },
+                        { name: "1.0-1.7", min: 1, max: 1.7 },
+                        { name: ">=1.8", min: 1.8, max: Infinity }
+                ]
+            }];
+
+            return attrs.map(function (attr, i) {
+
+                var d = data.map(function (a) {
+                    return a[i];
+                });
+                var mean = findMean(d);
+                var sd = findSD(d);
+                var lowerBound = mean - sd;
+                var upperBound = mean + sd;
+
+                return {
+                    name: attr,
+                    index: i,
+                    classFilter: [
+                        { name: "<=" + lowerBound.toFixed(2), min: -Infinity, max: lowerBound },
+                        { name: lowerBound.toFixed(2) + "-" + upperBound.toFixed(2), min: lowerBound, max: upperBound },
+                        { name: ">" + upperBound.toFixed(2), min: upperBound, max: Infinity }
+                    ]
+                };
+            });
+        }
+    }
+
+    function randomData(data) {
+        var r = [];
+        while (data.length > 0) {
+            var index = Math.round(Math.random() * (data.length - 1));
+            r.push(data.splice(index, 1)[0]);
+        }
+
+        //var aa = r.map(function (line) {
+        //    return line.join(',');
+        //})
+        //var ab = aa.join('\n');
+        //console.log(ab);
+
+        return r;
+
     }
 
     function showGraph(_nodes, _edges) {
@@ -127,17 +149,15 @@
             }
             return a;
         });
-        if (app._cy) {
-            app._cy.destroy();
-        }
+
         app._cy = cytoscape({
             container: document.getElementById('cy'),
-
+            wheelSensitivity: 0.07,
             style: cytoscape.stylesheet()
                 .selector('node')
                 .css({
                     'content': 'data(title)',
-                    'background-color': '#aaa'
+                    'background-color': '#aaa',
                 })
                 .selector('edge')
                 .css({
@@ -176,12 +196,11 @@
                 name: 'breadthfirst',
                 directed: true,
                 roots: '#' + _nodes[0]['id'],
-                padding: 20
+                padding: 20,
             }
         });
 
-        var bfs = app._cy.elements().bfs('#' + _nodes[0]['id'], function () {
-        }, true);
+        var bfs = app._cy.elements().bfs('#' + _nodes[0]['id'], function () { }, true);
     }
 
     function sumArray(data) {
@@ -205,24 +224,29 @@
     function readData(path) {
         var deferred = $.Deferred();
         $.get(path).success(function (data) {
-            var r = data.split('\n').map(function (line) {
-                return line.split(',').map(function (a) {
-                    if (a === "")
-                        return a;
-                    if (isNaN(Number(a))) {
-                        return a;
-                    }
-                    return Number(a);
-                })
-            }).filter(function (a) {
-                return a.every(function (attr) {
-                    return attr !== "";
-                });
-            });
-            deferred.resolve(r);
+            deferred.resolve(parseData(data));
         });
         return deferred.promise();
     }
+
+    function parseData(data) {
+        var r = data.split('\n').map(function (line) {
+            return line.split(',').map(function (a) {
+                if (a === "")
+                    return a;
+                if (isNaN(Number(a))) {
+                    return a;
+                }
+                return Number(a);
+            })
+        }).filter(function (a) {
+            return a.every(function (attr) {
+                return attr !== "";
+            });
+        });
+        return r;
+    }
+
 
     ////////////
 
@@ -234,15 +258,20 @@
         self.graphNodes = [];
         self.graphEdges = [];
 
-        findNode(data, []);
+        findNode(1, data, []);
 
         self.graphNodes = $.unique(self.graphNodes);
 
-        function findNode(data, prevAttrNames, prevNodeId) {
+        function findNode(level, data, prevAttrNames, prevNodeId) {
             var _prevAttrNames = prevAttrNames.slice(0);
             if (data.length == 0)
                 return;
+            app.log.title('หาค่า Gain สูงสุดระดับที่ : ' + level);
+
             var info = getPrimaryInfo(data);
+            var tCounts = countDesiredOutput(data);
+            app.log.title('Info(D) = I(A,B,C) = I(' + tCounts.join(',') + ') = ' + info.toFixed(4));
+
             var maxGainAttr = findMaxGain(data, info, _prevAttrNames);
             if (maxGainAttr) {
                 _prevAttrNames.push(maxGainAttr.attr.name);
@@ -251,7 +280,7 @@
                 if (prevNodeId) {
                     addGraphEdge(prevNodeId, maxGainAttrNodeId);
                 }
-                maxGainAttr.summary.forEach(function (sm) {
+                maxGainAttr.gain.summary.forEach(function (sm) {
                     var smNodeId = sm.classInfo.name + Math.random();
                     addGraphNode(smNodeId, sm.classInfo.name, 'condition');
                     addGraphEdge(maxGainAttrNodeId, smNodeId);
@@ -270,10 +299,22 @@
                         addGraphNode(dsId, desired, 'result');
                         addGraphEdge(smNodeId, dsId);
                     } else {
-                        var tempData = data.filter(function (item) {
-                            return checkRangeCondition(item[maxGainAttr.attr.index], sm.classInfo.min, sm.classInfo.max);
-                        });
-                        findNode(tempData, _prevAttrNames, smNodeId);
+                        if (_prevAttrNames.length < self.attrs.length) {
+                            var tempData = data.filter(function (item) {
+                                return checkRangeCondition(item[maxGainAttr.attr.index], sm.classInfo.min, sm.classInfo.max);
+                            });
+                            findNode(level + 1, tempData, _prevAttrNames, smNodeId);
+                        }
+                        else {
+                            var counts = sm.counts.slice(0);
+                            counts.sort(function (a, b) {
+                                return a.value < b.value;
+                            });
+                            var desired = counts[0].desired;
+                            var dsId = smNodeId + desired;
+                            addGraphNode(dsId, desired, 'result');
+                            addGraphEdge(smNodeId, dsId);
+                        }
                     }
                 });
             }
@@ -312,7 +353,6 @@
                 return a.gain.value < b.gain.value;
             });
             if (gains.length > 0) {
-                gains[0].summary = gains[0].gain.summary;
                 return gains[0];
             }
             return null;

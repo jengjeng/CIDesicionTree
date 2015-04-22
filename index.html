@@ -1,19 +1,178 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head lang="en">
     <meta charset="UTF-8">
     <title>Decision Tree</title>
-    <link rel="stylesheet" href="css/bootstrap.css" />
-    <link rel="stylesheet" href="css/bootstrap-theme.css" />
+    <link rel="stylesheet" type="text/css" href="css/normalize.css" />
+    <link rel="stylesheet" type="text/css" href="css/demo.css" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+
+    <!-- common styles -->
+    <link rel="stylesheet" type="text/css" href="css/dialog.css" />
+    <!-- individual effect -->
+    <link rel="stylesheet" type="text/css" href="css/dialog-ken.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <script src="js/modernizr.custom.js"></script>
 </head>
 <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Decision Tree</a>
+            </div>
+            <div id="navbar" class="collapse navbar-collapse pull-right">
+                <div class="button-wrap"><button id="showLogDialog" data-dialog="logDialog" class="trigger">Show Log</button></div>
+                <div class="button-wrap"><button id="configDialog" data-dialog="somedialog" class="trigger">Config</button></div>
+            </div><!--/.nav-collapse -->
+            <div id="somedialog" class="dialog">
+                <div class="dialog__overlay" style="display:none;"></div>
+                <div class="dialog__content">
+                    <button class="action close-dialog btn-sm" data-dialog-close>Close</button>
+                    <br />
+                    <div class="page-header">
+                        <h4>Data Source</h4>
+                    </div>
+                    <div class="well bs-component text-left">
+                        <form class="form-horizontal">
+                            <div class="form-group">
+                                <div class="col-lg-10">
+                                    <button id="gntData" class="btn btn-primary btn-sm">Generate Random Data</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-lg-10">
+                                    <button id="browseData" class="btn btn-primary btn-sm">Browse Data</button>
+                                    <input id="fbrowseData" type="file" style="display:none" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="page-header">
+                        <h4>Data Test</h4>
+                    </div>
+                    <div class="well bs-component text-left">
+                        <form class="form-horizontal">
+                            <div class="form-group">
+                                <div class="col-lg-10">
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="dataSection" id="dataSection1" value="0" checked="">
+                                            Section1 (1-50)
+                                        </label>
+                                    </div>
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="dataSection" id="dataSection2" value="1">
+                                            Section2 (50-100)
+                                        </label>
+                                    </div>
+                                    <div class="radio">
+                                        <label>
+                                            <input type="radio" name="dataSection" id="dataSection3" value="2">
+                                            Section3 (100-150)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container main">
+        <div id="cy"></div>
+        <div id="logDialog" class="dialog">
+            <div class="dialog__overlay" style="display:none;"></div>
+            <div class="dialog__content log">
+                <button class="action close-log-dialog btn-sm" data-dialog-close>Close</button>
+                <div id="logContent" class="well bs-component text-left">
 
-<div id="cy"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/jquery/dist/jquery.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script src="assets/cytoscape/dist/cytoscape.js"></script>
+    <script src="js/classie.js"></script>
+    <script src="js/dialogFx.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        (function () {
 
-<script src="assets/jquery/dist/jquery.js"></script>
-<script src="js/bootstrap.js"></script>
-<script src="assets/cytoscape/dist/cytoscape.js"></script>
-<script src="js/app.js"></script>
+            var dlgtrigger = document.querySelector('#configDialog'),
+                somedialog = document.getElementById(dlgtrigger.getAttribute('data-dialog')),
+                dlg = new DialogFx(somedialog);
+
+            dlgtrigger.addEventListener('click', dlg.toggle.bind(dlg));
+            dlgtrigger.addEventListener('click', btn);
+            document.querySelector('button.action.close-dialog').addEventListener('click', btn);
+            function btn() {
+                if (!dlgtrigger.disabled) {
+                    dlgtrigger.disabled = true;
+                } else {
+                    dlgtrigger.disabled = false;
+                }
+            }
+
+            var curData = [];
+            $('input[name="dataSection"]:radio').change(function fnInputChange() {
+                var section = sectionVal();
+                app.start(curData.slice(0), section);
+            });
+            
+            $('#gntData').click(function (e) {
+                e.preventDefault();
+                var section = sectionVal();
+                app.exampleData().then(function (data) {
+                    curData = data;
+                    app.start(curData.slice(0), section);
+                });
+            });
+            $('#gntData').click();
+            $('#browseData').click(function (e) {
+                e.preventDefault();
+                $('#fbrowseData').click();
+            });
+            $('#fbrowseData').change(function () {
+                var section = sectionVal();
+                var file = this.files[0];
+                var fr = new FileReader();
+                fr.onload = function (evt) {
+                    var data = app.parseData(evt.target.result);
+                    curData = data;
+                    app.start(curData.slice(0), section)
+                };
+                fr.readAsText(file, "UTF-8");
+            });
+
+            function sectionVal() {
+                return Number($('input[name=dataSection]:checked').val());
+            }
+            ////////////
+
+            var dlgtrigger2 = document.querySelector('#showLogDialog'),
+                somedialog2 = document.getElementById(dlgtrigger2.getAttribute('data-dialog')),
+                dlg2 = new DialogFx(somedialog2);
+
+            dlgtrigger2.addEventListener('click', dlg2.toggle.bind(dlg2));
+            dlgtrigger2.addEventListener('click', btn2);
+            document.querySelector('button.action.close-log-dialog').addEventListener('click', btn2);
+            function btn2() {
+                if (!dlgtrigger2.disabled) {
+                    dlgtrigger2.disabled = true;
+                } else {
+                    dlgtrigger2.disabled = false;
+                }
+            }
+        })();
+    </script>
 </body>
 </html>

@@ -1,3 +1,19 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background: #eee;
+    height: 100%;
+    overflow: hidden;
+}
+
+.main {
+    height: 94%;
+    width: 100%;
+    position: relative;
+    margin-top: 60px;
+}
+
 
 #cy {
     height: 100%;
@@ -7,8 +23,46 @@
     top: 0;
 }
 
-body{
-    margin:0;
-    padding:0;
-    background: #eee;
+.button-wrap {
+    padding: 9px;
+    display: inline-block;
+}
+
+button.trigger {
+    padding: .5em 1em;
+}
+
+.navbar-inverse .navbar-brand {
+    color: #fff;
+}
+
+.dialog {
+    position: absolute;
+    justify-content: flex-end;
+}
+
+.dialog__content {
+    width: 25%;
+    max-width: 350px;
+    margin-right: 25px;
+    margin-top: 90px;
+    background: rgba(255,255,255,.95);
+    max-height: 800px;
+    overflow:auto;
+}
+.dialog__content.log {
+    width:50%;
+    max-width:none;
+}
+button.action {
+    color: #fff !important;
+}
+
+button {
+    transition: .35s all ease;
+  opacity: 1;
+}
+
+button[disabled] {
+  opacity: 0;
 }
