@@ -2,7 +2,6 @@
 
     var app = {};
 
-    app._cy = null;
     app.showGraph = showGraph;
     app.readData = readData;
     app.start = start;
@@ -13,8 +12,44 @@
         message: function (t) {
             this.$e.append(t);
         },
-        title: function (t) {
-            this.message('<div><strong>' + t + '</strong></div>');
+        title: function (t, className) {
+            this.message('<div class="text-title ' + (className || '') + '">' + t + '</div>');
+        },
+        line: function(t, tag, className){
+            var self = this;
+            tag = tag ? tag : 'div';
+            t = Array.isArray(t) ? t : [t];
+            t.forEach(function (a) {
+                self.message('<' + tag + ' class="' + (className || '') +  '">' + a + '</' + tag + '>');
+            });
+        },
+        table: function(data,header, className, numberOrdered){
+            //app.log.line(data.map(function (line) {return line.join(',');}).join('\n'), 'pre');
+            var msg = '<table class="table ' + (className || '') + '">';
+            msg += '<thead>';
+            msg += '<tr>';
+            if (numberOrdered) {
+                msg += '<th>ลำดับที่</th>';
+            }
+            for (var i in header) {
+                msg += '<th>' + header[i] + '</th>';
+            }
+            msg += '</tr>';
+            msg += '</thead>';
+            msg += '<tbody>';
+            for (var i in data) {
+                msg += '<tr>';
+                if (numberOrdered) {
+                    msg += '<td>' + (Number(i) + 1) + '</td>';
+                }
+                for (var j in data[i]) {
+                    msg += '<td>' + data[i][j] + '</td>';
+                }
+                msg += '</tr>';
+            }
+            msg += '</tbody>';
+            msg += '</table>';
+            this.message(msg);
         },
         maxGain: function (maxGainAttr) {
 
@@ -32,14 +67,29 @@
         var attrsNames = (function () {
             var names = [];
             data[0].forEach(function (e, i) {
-                names.push('Attribute_' + i);
+                names.push('Attribute_' + (i+1));
             });
+            names.pop();
+            names.push('Class');
             return names;
         }());
+
+        app.log.title('Dataset ที่ใช้')
+        app.log.table(data, attrsNames, 'table-bordered table-striped', true);
 
         var testData = data.splice(50 * section, 50);
         var desiredOutputNames = getDesireOutputNames(data);
         var attrConfig = getAttributeConfig(attrsNames, data);
+
+        app.log.title('สร้าง DT แบบ 3 Fold Cross Validation');
+        app.log.line('กำหนดให้');
+        app.log.line(' Class A : Iris-setosa \n Class B : Iris-versicolor \n Class C : Iris-virginica', 'pre');
+        app.log.message('<hr/>');
+
+        app.log.title('ทำ Cross Validation ที่ ' + (section + 1));
+        app.log.line('นำข้อมูลจาก Dataset ลำดับที่ ' + (section * 50 + 1) + ' - ' + (section * 50 + 50) + ' มาทำการทดสอบ และใช้ Dataset ที่เหลือในการสร้าง DT จะได้');
+        app.log.message('<hr/>');
+
         var ci = new CIDecisionTree(data, attrConfig, desiredOutputNames);
         app.showGraph(ci.graphNodes, ci.graphEdges);
 
@@ -61,7 +111,7 @@
                 index: 0,
                 classFilter: [
                         { name: "<=5.4", min: -Infinity, max: 5.4 },
-                        { name: "5.5-6.2", min: 5.5, max: 6.2 },
+                        { name: "5.5 ถึง 6.2", min: 5.5, max: 6.2 },
                         { name: ">=6.3", min: 6.3, max: Infinity }
                 ]
             }, {
@@ -69,7 +119,7 @@
                 index: 1,
                 classFilter: [
                         { name: "<=2.9", min: -Infinity, max: 2.9 },
-                        { name: "3.0-3.3", min: 3, max: 3.3 },
+                        { name: "3.0 ถึง 3.3", min: 3, max: 3.3 },
                         { name: ">=3.4", min: 3.4, max: Infinity }
                 ]
             }, {
@@ -77,7 +127,7 @@
                 index: 2,
                 classFilter: [
                         { name: "<=2.9", min: -Infinity, max: 2.9 },
-                        { name: "3.0-4.8", min: 3, max: 4.8 },
+                        { name: "3.0 ถึง 4.8", min: 3, max: 4.8 },
                         { name: ">=4.9", min: 4.9, max: Infinity }
                 ]
             }, {
@@ -85,7 +135,7 @@
                 index: 3,
                 classFilter: [
                         { name: "<=0.9", min: -Infinity, max: 0.9 },
-                        { name: "1.0-1.7", min: 1, max: 1.7 },
+                        { name: "1.0 ถึง 1.7", min: 1, max: 1.7 },
                         { name: ">=1.8", min: 1.8, max: Infinity }
                 ]
             }];
@@ -120,17 +170,11 @@
             r.push(data.splice(index, 1)[0]);
         }
 
-        //var aa = r.map(function (line) {
-        //    return line.join(',');
-        //})
-        //var ab = aa.join('\n');
-        //console.log(ab);
-
         return r;
 
     }
 
-    function showGraph(_nodes, _edges) {
+    function showGraph(_nodes, _edges, selector) {
         var nodes = _nodes.map(function (n) {
             var a = { data: { id: n.id, title: n.title } };
             for (var i in n) {
@@ -150,8 +194,8 @@
             return a;
         });
 
-        app._cy = cytoscape({
-            container: document.getElementById('cy'),
+        var cy = cytoscape({
+            container: document.getElementById(selector || 'cy'),
             wheelSensitivity: 0.07,
             style: cytoscape.stylesheet()
                 .selector('node')
@@ -200,7 +244,7 @@
             }
         });
 
-        var bfs = app._cy.elements().bfs('#' + _nodes[0]['id'], function () { }, true);
+        var bfs = cy.elements().bfs('#' + _nodes[0]['id'], function () { }, true);
     }
 
     function sumArray(data) {
@@ -258,28 +302,37 @@
         self.graphNodes = [];
         self.graphEdges = [];
 
-        findNode(1, data, []);
+        findNode(1, data, [], []);
 
         self.graphNodes = $.unique(self.graphNodes);
 
-        function findNode(level, data, prevAttrNames, prevNodeId) {
-            var _prevAttrNames = prevAttrNames.slice(0);
+        function findNode(level, data, prevAttrNames, prevFilters, prevNodeId) {
             if (data.length == 0)
                 return;
-            app.log.title('หาค่า Gain สูงสุดระดับที่ : ' + level);
+
+            var _prevAttrNames = prevAttrNames.slice(0);
+            var _prevFilters = prevFilters.slice(0);
 
             var info = getPrimaryInfo(data);
             var tCounts = countDesiredOutput(data);
-            app.log.title('Info(D) = I(A,B,C) = I(' + tCounts.join(',') + ') = ' + info.toFixed(4));
+
+            app.log.title('หาค่า Gain สูงสุด' + (_prevFilters.length === 0 ? 'รอบแรก' : ' โดยที่ ' + (function () {
+                return _prevFilters.join(' และ ');
+            }())), 'well');
+            app.log.line('Info(D) = I(A,B,C) = I(' + tCounts.join(',') + ') = ' + info.toFixed(4), 'pre');
+            app.log.message('<hr/>');
 
             var maxGainAttr = findMaxGain(data, info, _prevAttrNames);
             if (maxGainAttr) {
+
                 _prevAttrNames.push(maxGainAttr.attr.name);
+
                 var maxGainAttrNodeId = maxGainAttr.attr.name + (prevNodeId ? Math.random() : '');
                 addGraphNode(maxGainAttrNodeId, maxGainAttr.attr.name, 'attr');
                 if (prevNodeId) {
                     addGraphEdge(prevNodeId, maxGainAttrNodeId);
                 }
+
                 maxGainAttr.gain.summary.forEach(function (sm) {
                     var smNodeId = sm.classInfo.name + Math.random();
                     addGraphNode(smNodeId, sm.classInfo.name, 'condition');
@@ -303,7 +356,11 @@
                             var tempData = data.filter(function (item) {
                                 return checkRangeCondition(item[maxGainAttr.attr.index], sm.classInfo.min, sm.classInfo.max);
                             });
-                            findNode(level + 1, tempData, _prevAttrNames, smNodeId);
+
+                            var _tempPrevFilter = _prevFilters.slice(0);
+                            _tempPrevFilter.push(maxGainAttr.attr.name + ' มีค่า ' + sm.classInfo.name);
+
+                            findNode(level + 1, tempData, _prevAttrNames, _tempPrevFilter, smNodeId);
                         }
                         else {
                             var counts = sm.counts.slice(0);
@@ -344,6 +401,23 @@
                 return prevAttrNames.indexOf(attr.name) === -1;
             }).map(function (attr, i) {
                 var gain = calGain(data, attr, info);
+
+                var logTableHeader = [attr.name, 'A', 'B', 'C', 'I(A,B,C)'];
+                var logTableData = gain.summary.map(function (sm) {
+                    return [sm.classInfo.name, sm.counts[0].value, sm.counts[1].value, sm.counts[2].value, sm.value.toFixed(4)];
+                });
+                app.log.line('หาค่า Gain ของ ' + attr.name, 'div', 'text-headsub');
+                app.log.table(logTableData, logTableHeader, 'table-bordered');
+                app.log.line(
+                    'Info<sub>' + attr.name + '</sub>(D)   = ' + (function () {
+                        return gain.summary.map(function (sm) {
+                            return sm.value.toFixed(4);
+                        }).join(' + ');
+                    }()) + ' = ' + gain.attrInfo.toFixed(4) +
+                    '\n' +
+                    'Gain(' + attr.name + ') = ' + info.toFixed(4) + ' - ' + gain.attrInfo.toFixed(4) + ' = ' + gain.value.toFixed(4), 'pre');
+                app.log.message('<hr/>');
+
                 return {
                     attr: attr,
                     gain: gain
@@ -352,6 +426,41 @@
             gains.sort(function (a, b) {
                 return a.gain.value < b.gain.value;
             });
+            
+            (function logDupplicatedValues() {
+                var dupplicatedValues = (function () {
+                    var r = [];
+                    var map = {};
+                    gains.forEach(function (g) {
+                        var key = String(g.gain.value);
+                        if (!map[key]) {
+                            map[key] = 1;
+                        } else {
+                            map[key]++;
+                        }
+                    });
+                    for (var i in map) {
+                        if (map[i] >= 2) {
+                            r = r.concat(gains.filter(function (g) {
+                                return g.gain.value === Number(i);
+                            }));
+                        }
+                    }
+                    return r;
+                }());
+
+                if (dupplicatedValues.length > 0) {
+                    app.log.line('เนื่องจาก Gain ของ ' + (function () {
+                        return dupplicatedValues.map(function (g) {
+                            return g.attr.name
+                        }).join(', ');
+                    }()) + ' มีค่าเท่ากัน จึงเลือก ' + gains[0].attr.name + (prevAttrNames.length == 0 ? ' เป็น root ของ DT' : '') + ' จะได้', 'div', 'text-headsub');
+                } else {
+                    app.log.line('เนื่องจาก Gain ของ ' + gains[0].attr.name + ' มากที่สุด จึงเลือก ' + gains[0].attr.name + (prevAttrNames.length == 0 ? ' เป็น root ของ DT' : '' ) + ' จะได้', 'div', 'text-headsub');
+                    app.log.message('<hr/>');
+                }
+            }());
+
             if (gains.length > 0) {
                 return gains[0];
             }
@@ -384,7 +493,8 @@
             var attrInfo = calInfo(data, attr);
             return {
                 value: info - attrInfo.value,
-                summary: attrInfo.summary
+                summary: attrInfo.summary,
+                attrInfo: attrInfo.value,
             };
         }
 
@@ -398,8 +508,10 @@
                 var classI = getPrimaryInfo(filteredData);
                 var countsDesired = countDesiredOutput(filteredData);
                 var classCount = sumArray(countsDesired);
-                sum += (classCount / data.length) * classI;
+                var value = (classCount / data.length) * classI;
+                sum += value;
                 summary.push({
+                    value: value,
                     classInfo: config,
                     counts: countsDesired.map(function(cd, i){
                         return {

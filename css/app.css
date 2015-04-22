@@ -37,7 +37,7 @@ button.trigger {
 }
 
 .dialog {
-    position: absolute;
+    position: fixed;
     justify-content: flex-end;
 }
 
@@ -47,7 +47,7 @@ button.trigger {
     margin-right: 25px;
     margin-top: 90px;
     background: rgba(255,255,255,.95);
-    max-height: 800px;
+    max-height: 90%;
     overflow:auto;
 }
 .dialog__content.log {
@@ -65,4 +65,15 @@ button {
 
 button[disabled] {
   opacity: 0;
+}
+
+.text-title{
+    font-weight:bold;
+    font-size: 1.3em;
+}
+
+.text-headsub{
+    font-weight:500;
+    font-size: 1.2em;
+    padding-bottom: .5em;
 }
