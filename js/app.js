@@ -318,7 +318,7 @@
                     });
                 }()));
             });
-        }()), ['Desired Output \ Test Output'].concat(self.desiredOutput), 'table-bordered');
+        }()), ['<sub>Desired Output</sub>  <sup style="float: right; top: 0.5em;">Test Output</sup>'].concat(self.desiredOutput), 'table-bordered');
         app.log.title('จากการทดสอบพบว่ามีเปอร์เซ็นต์ความถูกต้องเท่ากับ <span class="text-primary">' + ((result.correct * 100 / result.n).toFixed(2)) + ' %</span> ซึ่งเป็นผลการทดลองที่' + (result.correct == result.n ? '' : 'ค่อนข้าง') + 'ดี เนื่องจาก' + (result.n == (result.correct + result.unknown) ? 'ไม่มีความผิดพลาด' : ('มีความผิดพลาดเพียง <span class="text-danger">' + (((result.n - result.correct - result.unknown) * 100 / result.n).toFixed(2)) + '%</span>')) + (result.unknown == 0 ? ' และไม่มีที่ระบุคราสไม่ได้' : (' และระบุ Class ไม่ได้เพียง <span class="text-unknown">' + ((result.unknown * 100 / result.n).toFixed(2)) + ' %</span> เท่านั้น ')), 'well');
 
         function findNode(level, data, prevAttrNames, prevFilters, prevNode) {
