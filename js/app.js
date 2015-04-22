@@ -90,7 +90,7 @@
         app.log.line('นำข้อมูลจาก Dataset ลำดับที่ ' + (section * 50 + 1) + ' - ' + (section * 50 + 50) + ' มาทำการทดสอบ และใช้ Dataset ที่เหลือในการสร้าง DT จะได้');
         app.log.message('<hr/>');
 
-        var ci = new CIDecisionTree(data, attrConfig, desiredOutputNames);
+        var ci = new CIDecisionTree(data, testData, attrConfig, desiredOutputNames);
         app.showGraph(ci.graphNodes, ci.graphEdges);
 
         ///////////
@@ -241,6 +241,7 @@
                 directed: true,
                 roots: '#' + _nodes[0]['id'],
                 padding: 20,
+                avoidOverlap: true,
             }
         });
 
@@ -294,9 +295,10 @@
 
     ////////////
 
-    function CIDecisionTree(data, attributes, desiredOutput) {
+    function CIDecisionTree(data, testData, attributes, desiredOutput) {
         var self = this;
         self.data = data || [];
+        self.testData = testData || [];
         self.attrs = attributes || [];
         self.desiredOutput = desiredOutput || [];
         self.graphNodes = [];
@@ -307,6 +309,7 @@
         self.graphNodes = $.unique(self.graphNodes);
 
         function findNode(level, data, prevAttrNames, prevFilters, prevNodeId) {
+
             if (data.length == 0)
                 return;
 
@@ -337,7 +340,12 @@
                     var smNodeId = sm.classInfo.name + Math.random();
                     addGraphNode(smNodeId, sm.classInfo.name, 'condition');
                     addGraphEdge(maxGainAttrNodeId, smNodeId);
+                    sm.smNodeId = smNodeId;
+                });
 
+                var callbackFindNodes = [];
+                maxGainAttr.gain.summary.forEach(function (sm) {
+                    var smNodeId = sm.smNodeId;
                     var filtered = sm.counts.filter(function (e) {
                         return e.value > 0;
                     });
@@ -360,7 +368,7 @@
                             var _tempPrevFilter = _prevFilters.slice(0);
                             _tempPrevFilter.push(maxGainAttr.attr.name + ' มีค่า ' + sm.classInfo.name);
 
-                            findNode(level + 1, tempData, _prevAttrNames, _tempPrevFilter, smNodeId);
+                            callbackFindNodes.push([level + 1, tempData, _prevAttrNames, _tempPrevFilter, smNodeId]);
                         }
                         else {
                             var counts = sm.counts.slice(0);
@@ -373,6 +381,23 @@
                             addGraphEdge(smNodeId, dsId);
                         }
                     }
+                });
+
+                (function graphLog() {
+                    var _logGraphNodes = $.unique(self.graphNodes);
+                    var _logGraphEdgess = self.graphEdges.slice(0);
+                    if (_logGraphNodes.length > 0) {
+                        var _cyId = 'cy' + Math.random();
+                        var $d = $('<div class="cy-log"/>').attr('id', _cyId);
+                        $d.css('height', 400 + (level * 90));
+                        app.log.message($d);
+                        showGraph(_logGraphNodes, _logGraphEdgess, _cyId);
+                        app.log.message('<hr/>');
+                    }
+                }());
+
+                callbackFindNodes.forEach(function (args) {
+                    findNode.apply(self, args);
                 });
             }
         }
@@ -457,7 +482,6 @@
                     }()) + ' มีค่าเท่ากัน จึงเลือก ' + gains[0].attr.name + (prevAttrNames.length == 0 ? ' เป็น root ของ DT' : '') + ' จะได้', 'div', 'text-headsub');
                 } else {
                     app.log.line('เนื่องจาก Gain ของ ' + gains[0].attr.name + ' มากที่สุด จึงเลือก ' + gains[0].attr.name + (prevAttrNames.length == 0 ? ' เป็น root ของ DT' : '' ) + ' จะได้', 'div', 'text-headsub');
-                    app.log.message('<hr/>');
                 }
             }());
 
@@ -547,6 +571,10 @@
 
         function getAttributeName(index) {
             return this.attributes[index];
+        }
+
+        function doTestData(data, tData) {
+
         }
     }
 
