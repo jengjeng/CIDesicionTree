@@ -205,28 +205,28 @@
                 .css({
                     'target-arrow-shape': 'triangle',
                     'width': 2,
-                    'line-color': '#d0d0d0',
-                    'target-arrow-color': '#d0d0d0'
+                    'line-color': $('#color-edge').val(),
+                    'target-arrow-color': $('#color-edge').val()
                 })
                 .selector('.attr')
                 .css({
-                    'background-color': '#03A9F4',
-                    'line-color': '#03A9F4',
-                    'target-arrow-color': '#03A9F4',
+                    'background-color': $('#color-attr').val(),
+                    'line-color': $('#color-attr').val(),
+                    'target-arrow-color': $('#color-attr').val(),
                     'transition-property': 'background-color, line-color, target-arrow-color',
                     'transition-duration': '0.5s',
                 })
                 .selector('.condition')
                 .css({
-                    'background-color': '#F57C00',
+                    'background-color': $('#color-condition').val(),
                 })
                 .selector('.result')
                 .css({
-                    'background-color': '#E91E63',
+                    'background-color': $('#color-result').val(),
                 })
                 .selector('.unknown')
                 .css({
-                    'background-color': '#607D8B',
+                    'background-color': $('#color-unknown').val(),
                 }),
             elements: {
                 nodes: nodes,
