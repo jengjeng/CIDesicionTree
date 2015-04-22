@@ -133,7 +133,7 @@
                 index: 3,
                 classFilter: [
                         { name: "<=0.9", min: -Infinity, max: 0.9 },
-                        { name: "1.0-1.7", min: 1, max: 1.7 },
+                        { name: "1.0 ถึง 1.7", min: 1, max: 1.7 },
                         { name: ">=1.8", min: 1.8, max: Infinity }
                 ]
             }];
