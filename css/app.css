@@ -86,3 +86,13 @@ button[disabled] {
 .text-unknown{
     color:#607D8B;
 }
+
+/*html,
+body {
+    overflow: visible;
+}
+#logContent{
+    background:white;
+    padding: 2em;
+    margin-top: 100px;
+}*/
