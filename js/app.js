@@ -485,7 +485,7 @@
             }).map(function (attr, i) {
                 var gain = calGain(data, attr, info);
 
-                var logTableHeader = [attr.name, 'A', 'B', 'C', 'I(A,B,C)'];
+                var logTableHeader = [attr.name, 'A', 'B', 'C', '((A<sub>i</sub>+B<sub>i</sub>+C<sub>i</sub>)/N)xI(A,B,C)'];
                 var logTableData = gain.summary.map(function (sm) {
                     return [sm.classInfo.name, sm.counts[0].value, sm.counts[1].value, sm.counts[2].value, sm.value.toFixed(4)];
                 });
